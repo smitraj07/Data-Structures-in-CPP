@@ -22,6 +22,7 @@ class LL{
     public:
     // constructor
     LL() : _header(nullptr), _tail(nullptr), _size(0) {};
+    ~LL();
 
     // Select
     size_t get_size() const;
@@ -43,6 +44,22 @@ class LL{
     void delete_back();
     void delete_at(int index);
 };
+
+template <class T>
+LL<T>::~LL()
+{
+    Node<T> *temp = this->_header;
+
+    while(temp != nullptr)
+    {
+        this->_header = this->_header->_next;
+        delete temp;
+        temp = this->_header;   
+    }
+    this->_header = nullptr;
+    this->_tail = nullptr;
+    this->_size = 0;
+}
 
 template <class T>
 size_t 
@@ -73,12 +90,13 @@ template <class T>
 T 
 LL<T>::select_at(int index) const
 {
-    if (index >= this->_size)
+    if (index >= this->get_size())
         return T(0);
 
     Node<T> *temp = this->_header;
-    for (int i = 0 ; i < index ; i++, temp = temp->_next);
-    
+    while (index-- > 0)
+        temp = temp->_next;
+
     return temp->_data;
 }
 
@@ -145,10 +163,9 @@ template <class T>
 void 
 LL<T>::insert_at(int index, T data)
 {
-    if (index >= this->_size)
+    if (index >= (this->get_size() + 1))
         return;
 
-    Node<T> *n = new Node<T>(data);
     Node<T> *temp1 = this->_header;
     Node<T> *temp2 = nullptr;
 
@@ -162,14 +179,17 @@ LL<T>::insert_at(int index, T data)
     {
         this->push_front(data);
     }
-    else 
+    else if(temp1 == nullptr)
     {
-
+        this->push_back(data);
     }
-
-    temp2->_next = n;
-    n->_next = temp1;
-    this->_size++;
+    else
+    {
+        Node<T> *n = new Node<T>(data);
+        temp2->_next = n;
+        n->_next = temp1;
+        this->_size++;
+    }
 }
 
 // Update
@@ -256,25 +276,18 @@ LL<T>::delete_at(int index)
         temp1 = temp1->_next;
     }
 
-    if(this->_header == this->_tail)
+    if(temp2 == nullptr)
     {
-        this->_header = nullptr;
-        this->_header = nullptr;
+        this->delete_front();
     }
-    else if (temp1 == this->_header)
+    else if (temp1 == nullptr)
     {
-        this->_header = this->_header->_next;
-    }
-    else if (temp1 == this->_tail)
-    {
-        temp2->_next = nullptr;
-        this->_tail = temp2;
+        this->delete_back();
     }
     else
     {
         temp2->_next = temp1->_next;
+        this->_size--;
+        delete temp1;
     }
-    
-    this->_size--;
-    delete temp1;
 }
