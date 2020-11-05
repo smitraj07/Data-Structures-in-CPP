@@ -1,14 +1,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include "gen_class.hpp"
+#include "CLL_class.hpp"
 
 using namespace std;
 
 
 // SLL example.
 void
-create_LL(LL<int> &list)
+create_LL(CLL<int> &list)
 {
     list.insert_at(0, 34);
     list.insert_at(0,44);
@@ -18,14 +18,16 @@ create_LL(LL<int> &list)
 
 void do_LL()
 {
-    LL<int> list;
+    CLL<int> list;
     create_LL(list);
     list.print_LL();
     list.delete_at(2);
     list.delete_at(1);
     list.delete_at(1);
-    list.delete_at(0);
+    list.delete_front();
+   
     list.print_LL();
+    cout << list.front() << endl;
 }
 
 int main()

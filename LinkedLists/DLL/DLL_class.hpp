@@ -9,11 +9,12 @@ class Node{
     public:
     T _data;
     Node *_next;
-    Node(T data) : _data(data), _next(nullptr) {};
+    Node *_prev;
+    Node(T data) : _data(data), _next(nullptr), _prev(nullptr) {};
 };
 
 template <class T>
-class LL{
+class DLL{
     private:
     Node<T> *_header;
     Node<T> *_tail;
@@ -21,12 +22,13 @@ class LL{
 
     public:
     // constructor
-    LL() : _header(nullptr), _tail(nullptr), _size(0) {};
-    ~LL();
+    DLL() : _header(nullptr), _tail(nullptr), _size(0) {};
+    ~DLL();
 
     // Select
     size_t get_size() const;
-    void print_LL() const;
+    void print_DLL() const;
+    void print_DLL_reverse() const;
     T select_at(int index) const;
     T front() const;
     T back() const;
@@ -46,15 +48,15 @@ class LL{
 };
 
 template <class T>
-LL<T>::~LL()
+DLL<T>::~DLL()
 {
     Node<T> *temp = this->_header;
 
-    while(temp != nullptr)
+    while(this->_header != nullptr)
     {
+        temp = this->_header;
         this->_header = this->_header->_next;
         delete temp;
-        temp = this->_header;   
     }
     this->_header = nullptr;
     this->_tail = nullptr;
@@ -62,67 +64,83 @@ LL<T>::~LL()
 }
 
 template <class T>
-size_t 
-LL<T>::get_size() const
+size_t
+DLL<T>::get_size() const
 {
-        return this->_size;
+    return this->_size;
 }
 
 template <class T>
-void 
-LL<T>::print_LL() const
+void
+DLL<T>::print_DLL() const
 {
-    Node<T> *temp;
-    temp = this->_header;
+    Node<T> *temp = this->_header;
 
     while(temp != nullptr)
     {
-        cout << temp->_data << " -> ";
+        cout << temp->_data << "<->";
         temp = temp->_next;
     }
     cout << endl;
-    cout << "size of LL is: " << this->get_size() << endl;
+    cout << "size: " << this->get_size() << endl;
 }
 
+template <class T>
+void
+DLL<T>::print_DLL_reverse() const
+{
+    Node<T> *temp = this->_tail;
 
-// TODO: Add exception
+    while(temp != nullptr)
+    {
+        cout << temp->_data << "<->";
+        temp = temp->_prev;
+    }
+    cout << endl;
+    cout << "size: " << this->get_size() << endl;
+}
+
+// TODO: ADD exception handling
 template <class T>
 T 
-LL<T>::select_at(int index) const
+DLL<T>::select_at(int index) const
 {
     if (index >= this->get_size())
         return T(0);
 
     Node<T> *temp = this->_header;
-    while (index-- > 0)
+    while(index-- > 0)
+    {
         temp = temp->_next;
-
+    }
     return temp->_data;
 }
 
-// TODO: Add exception
+// TODO: ADD exception handling
 template <class T>
-T 
-LL<T>::front() const
+T
+DLL<T>::front() const
 {
     if (this->_header == nullptr)
         return T(0);
+ 
     return this->_header->_data;
 }
 
-// TODO: Add exception
+// TODO: ADD exception handling
 template <class T>
-T 
-LL<T>::back() const
+T
+DLL<T>::back() const
 {
     if (this->_header == nullptr)
         return T(0);
+ 
     return this->_tail->_data;
 }
 
 template <class T>
 void 
-LL<T>::push_front(T data)
+DLL<T>::push_front(T data)
 {
     Node<T> *n = new Node<T>(data);
 
@@ -134,6 +152,7 @@ LL<T>::push_front(T data)
     else
     {
         n->_next = this->_header;
+        this->_header->_prev = n;
         this->_header = n;
     }
     this->_size++;
@@ -141,27 +160,26 @@ LL<T>::push_front(T data)
 
 template <class T>
 void 
-LL<T>::push_back(T data)
+DLL<T>::push_back(T data)
 {
-    Node<T> *n = new Node<T>(data);
-
     if (this->_header == nullptr)
     {
-        this->_header = n;
-        this->_tail = n;
+        this->push_front(data);
     }
     else
     {
+        Node<T> *n = new Node<T>(data);
+        n->_prev = this->_tail;
         this->_tail->_next = n;
         this->_tail = n;
+        this->_size++;
     }
-    this->_size++;
 }
 
-// TODO: Add exception
+// TODO: Add exception.
 template <class T>
-void 
-LL<T>::insert_at(int index, T data)
+void
+DLL<T>::insert_at(int index, T data)
 {
     if (index >= (this->get_size() + 1))
         return;
@@ -169,54 +187,54 @@ LL<T>::insert_at(int index, T data)
     Node<T> *temp1 = this->_header;
     Node<T> *temp2 = nullptr;
 
-    while (index-- > 0)
+    while(index-- > 0)
     {
         temp2 = temp1;
         temp1 = temp1->_next;
     }
 
-    if(temp2 == nullptr)
+    if (temp2 == nullptr)
     {
         this->push_front(data);
     }
-    else if(temp1 == nullptr)
+    else if (temp1 == nullptr)
     {
         this->push_back(data);
     }
     else
     {
         Node<T> *n = new Node<T>(data);
-        temp2->_next = n;
         n->_next = temp1;
+        n->_prev = temp2;
+        temp1->_prev = n;
+        temp2->_next = n;
         this->_size++;
     }
 }
 
-// Update
-
 // TODO: Add exception
 template <class T>
 void 
-LL<T>::update_at(int index, T data)
+DLL<T>::update_at(int index, T data)
 {
-    if (index >= this->_size)
+    if (index >= this->get_size())
         return;
 
-    Node<T> *n = this->_header;
-    while(index-- > 0)
+    Node<T> *temp = this->_header;
+
+    while (index-- > 0)
     {
-        n = n->_next;
+        temp = temp->_next;
     }
-    n->_data = data;
+
+    temp->_data = data;
 }
 
-// Delete
-
 template <class T>
-void 
-LL<T>::delete_front()
-{
-    if (this->_header == nullptr)
+ void 
+ DLL<T>::delete_front()
+ {
+     if (this->_header == nullptr)
         return;
     
     Node<T> *temp = this->_header;
@@ -225,46 +243,37 @@ LL<T>::delete_front()
     {
         this->_tail = nullptr;
     }
-    this->_size--;
-    delete temp;
-}
-
-template <class T>
-void
-LL<T>::delete_back()
-{
-    if (this->_header == nullptr)
-        return;
-    
-    Node<T> *temp = this->_header;
-
-    while (temp != this->_tail && temp->_next != this->_tail)
-    {
-        temp = temp->_next;
-    }
-
-    if(temp == this->_tail)
-    {
-        this->_header = nullptr;
-        this->_tail = nullptr;
-    }
     else
     {
-        temp->_next = nullptr;
-        Node<T> *q = temp;
-        temp = this->_tail;
-        this->_tail = q;
+        this->_header->_prev = nullptr;
     }
-    this->_size--;
     delete temp;
-}
-
-// TODO: Add exception
-template <class T>
-void 
-LL<T>::delete_at(int index)
-{
-    if (index >= this->_size)
+    this->_size--;
+ }
+ 
+ template <class T>
+ void 
+ DLL<T>::delete_back()
+ {
+     if (this->_header == this->_tail)
+     {
+        this->delete_front();
+        return;
+     }
+    
+    Node<T> *temp = this->_tail;
+    this->_tail = this->_tail->_prev;
+    this->_tail->_next = nullptr;
+    delete temp;
+    this->_size--;
+ }
+ 
+ // TODO: Add exception 
+ template <class T>
+ void 
+ DLL<T>::delete_at(int index)
+ {
+     if (index >= this->get_size())
         return;
 
     Node<T> *temp1 = this->_header;
@@ -276,18 +285,19 @@ LL<T>::delete_at(int index)
         temp1 = temp1->_next;
     }
 
-    if(temp2 == nullptr)
+    if (temp2 == nullptr)
     {
         this->delete_front();
     }
-    else if (temp1 == nullptr)
+    else if (temp1 == this->_tail)
     {
         this->delete_back();
     }
     else
     {
         temp2->_next = temp1->_next;
-        this->_size--;
+        temp1->_next->_prev = temp2;
         delete temp1;
+        this->_size--;
     }
-}
+ }
